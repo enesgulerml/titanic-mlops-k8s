@@ -25,6 +25,39 @@ A production-ready Machine Learning pipeline for predicting Titanic survival, de
 * **Infrastructure:** Docker, Kubernetes (Minikube)
 * **Testing:** Pytest
 
+```mermaid
+graph TD
+    subgraph Training_Pipeline [🏗️ Training Pipeline]
+        style Training_Pipeline fill:#f9f9f9,stroke:#333,stroke-width:2px
+        RawData[(Titanic CSV)] -->|Ingestion| Components[src/components]
+        Components -->|Preprocessing| Features[Feature Engineering]
+        Features -->|Train| ModelTrainer[Model Training]
+        ModelTrainer -->|Output| ModelArtifact{{model.joblib}}
+    end
+
+    subgraph Containerization [🐳 Dockerization]
+        style Containerization fill:#e1f5fe,stroke:#0277bd,stroke-width:2px
+        ModelArtifact -.->|Copy| FastAPI[FastAPI Application]
+        FastAPI -->|Build| DockerImage[Docker Image]
+    end
+
+    subgraph Kubernetes_Cluster [☸️ Kubernetes Environment]
+        style Kubernetes_Cluster fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+        DockerImage -->|Deploy| K8sDeploy[Deployment]
+        K8sDeploy -->|Manage| Pods(Pod: titanic-api)
+        Pods -->|Expose| K8sService[Service]
+    end
+
+    subgraph User_Interface [💻 Client Side]
+        style User_Interface fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+        Streamlit[Streamlit Dashboard]
+        User((User))
+    end
+
+    User -->|Interacts| Streamlit
+    Streamlit -->|HTTP POST /predict| K8sService
+```
+
 ---
 
 ## 📂 Project Structure
