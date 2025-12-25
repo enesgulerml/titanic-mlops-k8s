@@ -1,20 +1,17 @@
 name: CI/CD Pipeline - Titanic Project
 
-# Trigger: Run this pipeline on every push to the main branch
 on:
   push:
     branches: [ "main" ]
 
 env:
-  AWS_REGION: eu-central-1                   # Your AWS Region
-  ECR_REPOSITORY: titanic-inference          # Your ECR Repository Name
-  CONTAINER_NAME: titanic-server             # Name for the running container on EC2
+  AWS_REGION: eu-central-1
+  ECR_REPOSITORY: titanic-inference
+  CONTAINER_NAME: titanic-server
 
 jobs:
-  # JOB 1: BUILD AND PUSH TO ECR
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -35,17 +32,13 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: latest
       run: |
-        # Build the Docker image
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        # Push the image to ECR
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-  # JOB 2: DEPLOY TO EC2 SERVER via SSH
   deploy:
-    needs: build-and-push  # Wait for build to finish
+    needs: build-and-push
     runs-on: ubuntu-latest
-
     steps:
     - name: Execute Remote SSH Commands
       uses: appleboy/ssh-action@master
@@ -53,23 +46,20 @@ jobs:
         host: ${{ secrets.SERVER_HOST }}
         username: ubuntu
         key: ${{ secrets.SERVER_SSH_KEY }}
+        # DÜZELTME: AWS_ACCESS_KEY_ID yerine AWS_ACCOUNT_ID kullanıldı
         script: |
-          # Use full path for AWS CLI to ensure it works in non-interactive shell
-          # Log in to ECR inside the EC2 instance
-          /usr/local/bin/aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
+          # 1. Login
+          /usr/local/bin/aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com
           
-          # Stop the running container (if it exists)
-          # "|| true" prevents the pipeline from failing if the container is not found
+          # 2. Stop & Remove Old Container
           docker stop ${{ env.CONTAINER_NAME }} || true
-          
-          # Remove the stopped container (if it exists)
           docker rm ${{ env.CONTAINER_NAME }} || true
           
-          # Pull the latest image from ECR
-          docker pull ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          # 3. Pull New Image
+          docker pull ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
           
-          # Run the new container (Map Port 80 on Host to 8000 in Container)
-          docker run -d -p 80:8000 --name ${{ env.CONTAINER_NAME }} ${{ secrets.AWS_ACCESS_KEY_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
+          # 4. Run New Container
+          docker run -d -p 80:8000 --name ${{ env.CONTAINER_NAME }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
           
-          # Clean up unused images to save disk space
-          docker image
+          # 5. Cleanup
+          docker image prune -f
