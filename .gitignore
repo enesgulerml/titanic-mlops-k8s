@@ -22,7 +22,7 @@ srd/data/processed/
 logs/
 
 # Model Files
-model/*.pkl
+models/*.pkl
 
 # Logs
 *.log

@@ -65,6 +65,9 @@ The project follows a modular architecture to separate concerns (Training vs. In
 
 ```text
 titanic-mlops-k8s/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml      # CI/CD Pipeline for AWS Deployment
 ├── k8s/                     # Kubernetes Manifests (Deployment & Service)
 ├── src/
 │   ├── api/                 # FastAPI Application (Entry point)
@@ -72,7 +75,10 @@ titanic-mlops-k8s/
 │   ├── pipelines/           # Training Pipelines
 │   └── ui/                  # Streamlit Dashboard Code
 ├── tests/                   # Pytest Unit Tests
+├── .dockerignore            
+├── .gitignore
 ├── Dockerfile               # Multi-stage Docker Build
+├── docker-compose.yml       # Container Orchestration (Local & Prod) 
 ├── requirements.txt         # Project Dependencies
 └── params.yaml              # Configuration Controller
 ```
