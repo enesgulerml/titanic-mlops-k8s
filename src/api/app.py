@@ -4,12 +4,10 @@ import uvicorn
 import os
 import sys
 
-# Kendi modüllerimizi ekleyelim
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.pipelines.prediction_pipeline import make_prediction
 from src.utils.logger import get_logger
 
-# Logger'ı başlatalım
 logger = get_logger("API")
 
 app = FastAPI(
@@ -19,8 +17,7 @@ app = FastAPI(
 )
 
 
-# --- 1. Pydantic ile Veri Doğrulama (Data Validation) ---
-# Burası MLOps'un kapı bekçisidir. Yanlış veri içeri giremez.
+# --- 1. Data Validation ---
 class PassengerData(BaseModel):
     PassengerId: int = Field(..., description="Yolcu ID (Pipeline silecek ama format bozulmasın diye istiyoruz)")
     Name: str = Field(..., description="Yolcunun Adı")
@@ -35,7 +32,6 @@ class PassengerData(BaseModel):
     Embarked: str = Field("S", pattern="^(S|C|Q)$", description="Biniş Limanı (S, C, Q)")
 
     class Config:
-        # Swagger UI'da görünecek örnek veri
         json_schema_extra = {
             "example": {
                 "PassengerId": 123,
@@ -53,7 +49,6 @@ class PassengerData(BaseModel):
         }
 
 
-# Model yolunu belirle
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODEL_PATH = os.path.join(BASE_DIR, 'models', 'titanic_pipeline.pkl')
 
@@ -72,10 +67,8 @@ def predict_survival(passenger: PassengerData):
     try:
         logger.info(f"API isteği alındı: {passenger.Name}")
 
-        # Pydantic modelini dictionary'e çevir
         data_dict = passenger.dict()
 
-        # Inference modülünü çağır
         result = make_prediction(data_dict, MODEL_PATH)
 
         return {
@@ -90,5 +83,4 @@ def predict_survival(passenger: PassengerData):
 
 
 if __name__ == "__main__":
-    # Localde test etmek için
     uvicorn.run(app, host="0.0.0.0", port=8000)

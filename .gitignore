@@ -18,6 +18,9 @@ src/data/raw/
 srd/data/processed/
 *.csv
 
+# Logs
+logs/
+
 # Model Files
 model/*.pkl
 

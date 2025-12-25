@@ -1,10 +1,8 @@
 import os
 import pickle
 import sys
-# YAML okuyucumuzu ekledik
 from src.utils.common import read_params
 
-# Path ayarı
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from sklearn.ensemble import RandomForestClassifier
@@ -18,14 +16,8 @@ from src.utils.logger import get_logger
 logger = get_logger(__name__)
 
 def train_model(config_path):
-    """
-    Config dosyasından parametreleri okur ve eğitimi başlatır.
-    """
-    # 1. Parametreleri Yükle
     config = read_params(config_path)
 
-    # Dosya yollarını config'den alıyoruz
-    # (Proje ana dizinine göre yol oluşturuyoruz)
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     data_path = os.path.join(base_dir, config['external_data_config']['external_data_csv'])
@@ -33,7 +25,6 @@ def train_model(config_path):
     model_name = config['model_config']['model_name']
     model_path = os.path.join(model_dir, model_name)
 
-    # Parametreleri alalım
     random_state = config['preprocessing_config']['random_state']
     split_ratio = config['preprocessing_config']['train_test_split_ratio']
 
@@ -41,7 +32,6 @@ def train_model(config_path):
     max_depth = config['model_config']['max_depth']
     model_random_state = config['model_config']['random_state']
 
-    # --- (Buradan sonrası aynı mantık, sadece değişkenleri kullanacağız) ---
 
     logger.info(f"Veri yükleniyor: {data_path}")
     df = load_data(data_path)
@@ -49,7 +39,6 @@ def train_model(config_path):
     X = df.drop('Survived', axis=1)
     y = df['Survived']
 
-    # Config'den gelen split_ratio ve random_state kullanılıyor
     X_train, X_test, y_train, y_test = train_test_split(
         X, y,
         test_size=split_ratio,
@@ -61,7 +50,6 @@ def train_model(config_path):
         ('dropper', ColumnDropper(columns_to_drop=['PassengerId', 'Name', 'Ticket', 'Cabin'])),
         ('imputer', MissingValueImputer()),
         ('encoder', CategoricalEncoder()),
-        # Config'den gelen parametreler burada!
         ('model', RandomForestClassifier(
             n_estimators=n_estimators,
             max_depth=max_depth,

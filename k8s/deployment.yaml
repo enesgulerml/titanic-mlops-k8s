@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: titanic-deployment
 spec:
-  replicas: 1  # 1 adet kopya çalıştır
+  replicas: 1
   selector:
     matchLabels:
       app: titanic-api
@@ -15,7 +15,7 @@ spec:
       containers:
       - name: titanic-container
         image: titanic-api:v3
-        imagePullPolicy: Never  # İmajı internette arama, yükledik zaten!
+        imagePullPolicy: Never
         ports:
         - containerPort: 8000
         resources:
@@ -30,7 +30,7 @@ metadata:
 spec:
   selector:
     app: titanic-api
-  type: NodePort  # Dışarıdan erişim için kapı aç
+  type: NodePort
   ports:
     - protocol: TCP
       port: 80
