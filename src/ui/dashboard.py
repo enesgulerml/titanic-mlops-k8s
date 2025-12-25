@@ -56,12 +56,11 @@ if submit_val:
             result = response.json()
             prediction = result["prediction"]
 
-            if prediction == 1:
-                st.success(f" {name} survived!")
-                st.balloons
-
+            if prediction == "Survived":
+                st.success(f"{name} survived! 🎉")
+                st.balloons()
             else:
-                st.error(f" {name} couldn't survived.")
+                st.error(f"{name} couldn't survive.")
         else:
             st.error(f"ERROR: {response.text}")
 
