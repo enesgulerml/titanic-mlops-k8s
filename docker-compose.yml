@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:alpine
+    container_name: titanic-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.1
+    container_name: titanic-mlflow
+    ports:
+      - "5000:5000"
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0
+    volumes:
+      - mlflow_data:/mlflow
+    restart: always
+
   api:
     image: ${FULL_IMAGE_NAME:-titanic-api:local}
     container_name: titanic-api
@@ -33,19 +50,32 @@ services:
       - api
     restart: always
 
-  redis:
-    image: redis:alpine
-    container_name: titanic-redis
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: titanic-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
     ports:
-      - "6379:6379"
+      - "9090:9090"
+    depends_on:
+      - api
     restart: always
 
-  mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.11.1
-    container_name: titanic-mlflow
+  grafana:
+    image: grafana/grafana:latest
+    container_name: titanic-grafana
     ports:
-      - "5000:5000"
-    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
-      - ./mlflow_data:/mlflow
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
     restart: always
+
+volumes:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:

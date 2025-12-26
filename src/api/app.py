@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
+from prometheus_fastapi_instrumentator import Instrumentator
 import uvicorn
 import os
 import sys
@@ -27,6 +28,9 @@ app = FastAPI(
     description="MLOps best practices kullanılarak hazırlanmış tahmin servisi.",
     version="1.0.0"
 )
+
+# --- PROMETHEUS ENTEGRASYONU ---
+Instrumentator().instrument(app).expose(app)
 
 
 # --- 1. Data Validation ---
