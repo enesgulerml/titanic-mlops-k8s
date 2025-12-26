@@ -12,8 +12,10 @@ services:
       - "8000:8000"
     environment:
       - REDIS_HOST=redis
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
     depends_on:
       - redis
+      - mlflow
     restart: always
 
   ui:
@@ -36,4 +38,14 @@ services:
     container_name: titanic-redis
     ports:
       - "6379:6379"
+    restart: always
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.11.1
+    container_name: titanic-mlflow
+    ports:
+      - "5000:5000"
+    command: mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 0.0.0.0
+    volumes:
+      - ./mlflow_data:/mlflow
     restart: always
