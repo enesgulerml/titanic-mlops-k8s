@@ -60,6 +60,12 @@ graph TD
 
 ---
 
+<p align="center">
+  <img src="docs/images/usage.gif" alt="Project Demo" width="700">
+</p>
+
+---
+
 ## 📂 Project Structure
 The project follows a modular architecture to separate concerns (Training vs. Inference):
 
